@@ -1,7 +1,7 @@
 const REPO_OWNER = 'yhstudios'; // <--- CHANGE THIS TO YOUR GITHUB USERNAME
 const REPO_NAME = 'gemach-db';             // <--- CHANGE THIS IF YOU NAMED THE REPO DIFFERENTLY
 const PAT1 = 'ghp_47FealsOaGV5r3';
-const PAT2 = 'ghp_tlWfK9N4boW22ZKG2m1v1f';
+const PAT2 = 'tlWfK9N4boW22ZKG2m1v1f';
 const PAT = PAT1 + PAT2;
 const FILE_PATH = 'data.json';
 
