@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemach Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2>Enter Password</h2>
+            <p>Please log in to access the Gemach Manager.</p>
+            <form id="form-auth">
+                <input type="password" id="auth-password" class="form-control" placeholder="Password" required>
+                <button type="submit" class="btn primary full-width">Unlock</button>
+                <p id="auth-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 10px; display: none;">Incorrect password.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container">
+        <!-- Main Calendar Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-titles">
+                    <h1>Gemach Manager</h1>
+                    <h2 id="calendar-month-year">Loading...</h2>
+                </div>
+                <div class="header-actions">
+                    <span id="monthly-stats" style="margin-right: 15px; font-weight: bold; color: var(--text-muted);">0 Gowns Lent This Month</span>
+                    <button id="btn-today" class="btn secondary">Today</button>
+                    <button id="prev-month-btn" class="icon-btn">&lt;</button>
+                    <button id="next-month-btn" class="icon-btn">&gt;</button>
+                    <button class="btn secondary" id="btn-manage-gowns">Gowns Menu</button>
+                    <button class="btn primary" id="btn-add-transaction">+ Transaction</button>
+                    <button class="icon-btn" id="btn-settings">⚙️</button>
+                </div>
+            </header>
+            
+            <div id="calendar-weekdays" class="calendar-weekdays"></div>
+            
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Calendar days will be rendered here via JS -->
+            </div>
+        </main>
+
+        <!-- Right Details Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3 id="sidebar-date-title">Select a day</h3>
+            </div>
+            <div id="sidebar-content" class="sidebar-content">
+                <p class="empty-state">Click on any date in the calendar to view details, cleanings, and lending schedules.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Add Transaction Modal -->
+    <div id="modal-transaction" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-transaction">&times;</span>
+            <h2>Add Gown Transaction</h2>
+            <form id="form-transaction">
+                
+                <div class="form-group">
+                    <label>Selected Gown</label>
+                    <input type="hidden" id="trans-gown" required>
+                    <div id="selected-gown-display" class="selected-gown-display">
+                        <span id="selected-gown-text">No Gown Selected</span>
+                        <button type="button" class="btn secondary small" id="btn-open-gown-selector">Choose Gown</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Customer</label>
+                    <select id="trans-user" class="form-control" required>
+                        <option value="">-- Select Existing or Add New --</option>
+                        <option value="NEW">+ Add New Customer</option>
+                    </select>
+                </div>
+
+                <div id="new-user-fields" style="display: none;">
+                    <div class="form-group"><input type="text" id="nu-name" class="form-control" placeholder="Full Name"></div>
+                    <div class="form-group"><input type="tel" id="nu-phone" class="form-control" placeholder="Phone Number"></div>
+                    <div class="form-group"><input type="email" id="nu-email" class="form-control" placeholder="Email Address"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Lend Date</label>
+                    <input type="date" id="trans-date" class="form-control" required>
+                    <small>Cleaning date will be automatically scheduled for 3 weeks prior.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Deposit Amount</label>
+                    <select id="trans-deposit" class="form-control" required>
+                        <option value="125">$125</option>
+                        <option value="50">$50</option>
+                        <option value="CUSTOM">Custom Amount...</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-deposit-field" style="display: none;">
+                    <input type="number" id="trans-custom-deposit" class="form-control" placeholder="Enter amount">
+                </div>
+
+                <button type="submit" class="btn primary full-width" id="submit-transaction">Save Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gown Selector Modal -->
+    <div id="modal-select-gown" class="modal">
+        <div class="modal-content" style="max-width: 700px; width: 95%;">
+            <span class="close-btn" data-modal="modal-select-gown">&times;</span>
+            <h2>Select a Gown</h2>
+            <div class="form-group">
+                <input type="text" id="search-gown" class="form-control" placeholder="Search by Barcode or Name...">
+            </div>
+            <div id="gown-selection-grid" class="gown-grid selection-mode">
+                <!-- Gowns injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Gowns Modal -->
+    <div id="modal-gowns" class="modal">
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-btn" data-modal="modal-gowns">&times;</span>
+            <h2>Manage Gowns</h2>
+            
+            <div style="display:flex; gap:10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="search-manage-gowns" class="form-control" placeholder="Search gowns by Barcode or Name..." style="flex: 1; min-width: 200px;">
+                <button type="button" class="btn primary" id="btn-open-add-gown">+ Add New Gown</button>
+            </div>
+
+            <div id="gown-list" class="gown-grid">
+                <!-- Gowns dynamically injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Gown Modal -->
+    <div id="modal-add-gown" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-add-gown">&times;</span>
+            <h2>Add New Gown</h2>
+            <form id="form-add-gown">
+                <div class="form-group">
+                    <label>Barcode / ID</label>
+                    <input type="text" id="new-gown-id" class="form-control" placeholder="Barcode / ID" required>
+                </div>
+                <div class="form-group">
+                    <label>Name / Description</label>
+                    <input type="text" id="new-gown-name" class="form-control" placeholder="Name / Description" required>
+                </div>
+                <div class="form-group">
+                    <label>Upload Image (Optional)</label>
+                    <input type="file" id="new-gown-image-file" class="form-control" accept="image/*">
+                </div>
+                <button type="submit" class="btn primary full-width">Save New Gown</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Gown Modal -->
+    <div id="modal-edit-gown" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-edit-gown">&times;</span>
+            <h2>Edit Gown</h2>
+            <form id="form-edit-gown">
+                <input type="hidden" id="edit-gown-original-id">
+                <div class="form-group">
+                    <label>Barcode / ID</label>
+                    <input type="text" id="edit-gown-id" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Name / Description</label>
+                    <input type="text" id="edit-gown-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Upload New Image (Optional)</label>
+                    <input type="file" id="edit-gown-image-file" class="form-control" accept="image/*">
+                    <small>Leave empty to keep existing image.</small>
+                </div>
+                <button type="submit" class="btn primary full-width">Update Gown</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gown History Modal -->
+    <div id="modal-gown-history" class="modal">
+        <div class="modal-content" style="max-width: 500px; width: 95%;">
+            <span class="close-btn" data-modal="modal-gown-history">&times;</span>
+            <h2 id="history-modal-title">Gown History</h2>
+            <div id="history-modal-content" class="history-modal-list">
+                <!-- History injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-settings">&times;</span>
+            <h2>Settings</h2>
+            <form id="form-settings">
+                <div class="form-group">
+                    <label>System Password</label>
+                    <input type="text" id="set-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Theme</label>
+                    <select id="set-theme" class="form-control">
+                        <option value="dark">Dark Mode</option>
+                        <option value="light">Light Mode</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Primary Accent Color (Gold)</label>
+                    <input type="color" id="set-accent" class="form-control" style="padding: 2px; height: 40px;">
+                </div>
+                <div class="form-group">
+                    <label>Secondary Accent Color (Purple)</label>
+                    <input type="color" id="set-secondary" class="form-control" style="padding: 2px; height: 40px;">
+                </div>
+                <button type="submit" class="btn primary full-width">Save Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Memo Modal -->
+    <div id="modal-memo" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-memo">&times;</span>
+            <h2>Add Memo</h2>
+            <form id="form-memo">
+                <input type="hidden" id="memo-date">
+                <div class="form-group">
+                    <label>Memo Details</label>
+                    <textarea id="memo-text" rows="3" required placeholder="Type your memo here..." class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn primary full-width">Save Memo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div id="modal-reschedule" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" data-modal="modal-reschedule">&times;</span>
+            <h2>Reschedule</h2>
+            <p id="reschedule-desc"></p>
+            <form id="form-reschedule">
+                <input type="hidden" id="reschedule-id">
+                <input type="hidden" id="reschedule-type">
+                <div class="form-group">
+                    <label>New Date</label>
+                    <input type="date" id="reschedule-date" required class="form-control">
+                </div>
+                <button type="submit" class="btn primary full-width">Update Date</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Expand Modal -->
+    <div id="modal-image-expand" class="modal modal-image-expand" onclick="UI.closeImageModal()">
+        <div class="image-expand-box" onclick="event.stopPropagation()">
+            <button class="image-expand-close" onclick="UI.closeImageModal()">&#x2715;</button>
+            <img id="image-expand-img" src="" alt="Gown" class="image-expand-full">
+        </div>
+    </div>
+
+    <!-- JS Files -->
+    <script src="api.js"></script>
+    <script src="state.js"></script>
+    <script src="calendar.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
