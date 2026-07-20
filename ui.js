@@ -294,22 +294,25 @@ const UI = {
             if (g.id.toLowerCase().includes(lowerSearch) || g.name.toLowerCase().includes(lowerSearch)) {
                 const imgHTML = g.hasImage ? `<img data-gown-id="${g.id}" src="" class="gown-image async-image" alt="Gown">` : `<div class="gown-image placeholder">No Image</div>`;
                 
-                list.innerHTML += `
-                    <div class="gown-card">
-                        ${imgHTML}
-                        <div class="gown-info">
-                            <div><strong>${g.id}</strong><br><span style="color:var(--text-muted);font-size:0.9rem;">${g.name}</span></div>
-                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                                <button type="button" class="btn secondary small" style="flex:1;" onclick="UI.promptEditGown('${g.id}')">Edit</button>
-                                <button type="button" class="btn danger small" style="flex:1;" onclick="UI.deleteGown('${g.id}')">Delete</button>
-                            </div>
-                            <button type="button" class="btn small" style="background:var(--surface); color:var(--text-main); border: 1px solid var(--border-color);" onclick="UI.openHistoryModal('${g.id}')">View History</button>
+                // Use createElement instead of innerHTML += to prevent lag
+                const card = document.createElement('div');
+                card.className = 'gown-card';
+                card.innerHTML = `
+                    ${imgHTML}
+                    <div class="gown-info">
+                        <div><strong>${g.id}</strong><br><span style="color:var(--text-muted);font-size:0.9rem;">${g.name}</span></div>
+                        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                            <button type="button" class="btn secondary small" style="flex:1;" onclick="UI.promptEditGown('${g.id}')">Edit</button>
+                            <button type="button" class="btn danger small" style="flex:1;" onclick="UI.deleteGown('${g.id}')">Delete</button>
                         </div>
+                        <button type="button" class="btn small" style="background:var(--surface); color:var(--text-main); border: 1px solid var(--border-color);" onclick="UI.openHistoryModal('${g.id}')">View History</button>
                     </div>
                 `;
+                list.appendChild(card);
             }
         });
-        this.loadAsyncImages();
+        
+        this.loadAsyncImages(); // Trigger background load
     },
 
     openHistoryModal(id) {
