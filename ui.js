@@ -110,6 +110,9 @@ const UI = {
         document.getElementById('trans-deposit').addEventListener('change', (e) => {
             document.getElementById('custom-deposit-field').style.display = e.target.value === 'CUSTOM' ? 'block' : 'none';
         });
+        document.getElementById('trans-petticoat').addEventListener('change', (e) => {
+            document.getElementById('petticoat-detail-field').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
         
         // Search filters
         document.getElementById('search-gown').addEventListener('input', (e) => this.renderGownSelectionGrid(e.target.value));
@@ -131,6 +134,7 @@ const UI = {
         if(id === 'modal-transaction') {
             document.getElementById('new-user-fields').style.display = 'none';
             document.getElementById('custom-deposit-field').style.display = 'none';
+            document.getElementById('petticoat-detail-field').style.display = 'none';
             document.getElementById('trans-gown').value = '';
             document.getElementById('selected-gown-text').textContent = 'No Gown Selected';
         }
@@ -251,6 +255,9 @@ const UI = {
         let depositVal = document.getElementById('trans-deposit').value;
         if(depositVal === 'CUSTOM') depositVal = document.getElementById('trans-custom-deposit').value;
 
+        const hasPetticoat = document.getElementById('trans-petticoat').value === 'yes';
+        const petticoatDetail = hasPetticoat ? document.getElementById('trans-petticoat-detail').value : '';
+
         // (lendDate was already defined at the top, so we just calculate cleaningDate)
         const cleaningDate = this.calculateCleaningDate(lendDate);
 
@@ -260,7 +267,10 @@ const UI = {
             userId: userId,
             lendDate: lendDate,
             cleaningDate: cleaningDate,
-            deposit: depositVal
+            deposit: depositVal,
+            hasPetticoat: hasPetticoat,
+            petticoatDetail: petticoatDetail,
+            cleaned: false
         });
         this.hideLoading();
 
@@ -439,6 +449,15 @@ const UI = {
         }
     },
 
+    async markCleaned(id, val) {
+        if (this._debounce('markCleaned-' + id)) return;
+        this.showLoading();
+        await State.markCleaned(id, val);
+        this.hideLoading();
+        Calendar.render();
+        if(Calendar.selectedDateStr) this.renderSidebar(Calendar.selectedDateStr);
+    },
+
     renderSidebar(dateStr) {
         const localDate = new Date(dateStr + 'T00:00:00');
         document.getElementById('sidebar-date-title').textContent = localDate.toDateString();
@@ -458,12 +477,21 @@ const UI = {
                    </div>` 
                 : `<div class="detail-card-image placeholder">No Image</div>`;
 
+            const isCleaned = !!t.cleaned;
+            const statusClass = isCleaned ? 'cleaned' : 'not-cleaned';
+            const statusText = isCleaned ? '✅ Cleaned' : '❌ Not Cleaned Yet';
+            const cleanBtn = isCleaned
+                ? `<button class="btn secondary small" onclick="UI.markCleaned('${t.id}', false)">Undo Cleaned</button>`
+                : `<button class="btn success small" onclick="UI.markCleaned('${t.id}', true)">Gown Cleaned</button>`;
+
             content.innerHTML += `
-                <div class="detail-card clean has-image">
+                <div class="detail-card clean ${statusClass} has-image">
                     <div class="detail-card-content">
                         <h4>🧹 Gown Cleaning (${g ? g.id : t.gownId})</h4>
                         <p>Reserved for: ${u ? u.name : 'Unknown'}</p>
-                        <div style="display:flex; gap:5px;">
+                        <p class="clean-status ${statusClass}">${statusText}</p>
+                        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                            ${cleanBtn}
                             <button class="btn secondary small" onclick="UI.promptReschedule('${t.id}', 'CLEAN', '${dateStr}')">Reschedule</button>
                         </div>
                     </div>
@@ -488,6 +516,7 @@ const UI = {
                         <h4>👗 Lending Out (${g ? g.id : t.gownId})</h4>
                         <p>Customer: ${u ? u.name : 'Unknown'} (${u ? u.phone : 'No Phone'})</p>
                         <p>Deposit: $${t.deposit}</p>
+                        <p>Petticoat: ${t.hasPetticoat ? `Yes (${t.petticoatDetail || 'unspecified'})` : 'No'}</p>
                         <div style="display:flex; gap:5px;">
                             <button class="btn secondary small" onclick="UI.promptReschedule('${t.id}', 'LEND', '${dateStr}')">Reschedule</button>
                             <button class="btn danger small" onclick="UI.deleteTransaction('${t.id}')">Delete</button>

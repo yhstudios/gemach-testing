@@ -77,6 +77,12 @@ const State = {
         return this.save();
     },
 
+    markCleaned(id, val = true) {
+        const t = this.data.transactions.find(x => x.id === id);
+        if (t) t.cleaned = val;
+        return this.save();
+    },
+
     addUser(user) {
         user.id = 'U-' + Date.now();
         this.data.users.push(user);

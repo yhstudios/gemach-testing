@@ -88,7 +88,8 @@ const Calendar = {
     appendDayBadges(dateStr, dayEl) {
         State.data.transactions.filter(t => t.cleaningDate === dateStr).forEach(t => {
             const g = State.getGown(t.gownId);
-            dayEl.innerHTML += `<div class="badge clean">Clean: ${g ? g.id : 'Unknown'}</div>`;
+            const statusClass = t.cleaned ? 'cleaned' : 'not-cleaned';
+            dayEl.innerHTML += `<div class="badge clean ${statusClass}">Clean: ${g ? g.id : 'Unknown'}</div>`;
         });
 
         State.data.transactions.filter(t => t.lendDate === dateStr).forEach(t => {

@@ -12,6 +12,8 @@
     --color-lend: #4caf50;
     --color-clean: #2196f3;
     --color-event: #ff9800;
+    --color-cleaned: #2e7d32;
+    --color-not-cleaned: #d32f2f;
 }
 
 [data-theme="light"] {
@@ -60,6 +62,8 @@ body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh;
 .badge:hover { transform: scale(1.02); }
 .badge.lend { background-color: var(--color-lend); }
 .badge.clean { background-color: var(--color-clean); }
+.badge.clean.not-cleaned { background-color: var(--color-not-cleaned); }
+.badge.clean.cleaned { background-color: var(--color-cleaned); }
 .badge.event { background-color: var(--color-event); }
 
 /* Sidebar */
@@ -71,7 +75,12 @@ body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh;
 .detail-card:hover { transform: translateX(5px); box-shadow: -2px 4px 10px rgba(0,0,0,0.15); }
 .detail-card.lend { border-color: var(--color-lend); }
 .detail-card.clean { border-color: var(--color-clean); }
+.detail-card.clean.not-cleaned { border-color: var(--color-not-cleaned); }
+.detail-card.clean.cleaned { border-color: var(--color-cleaned); }
 .detail-card.event { border-color: var(--color-event); }
+.clean-status { font-weight: bold; }
+.clean-status.not-cleaned { color: var(--color-not-cleaned); }
+.clean-status.cleaned { color: var(--color-cleaned); }
 .detail-card h4 { margin-bottom: 5px; }
 .detail-card p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; }
 .detail-card.has-image { display: flex; gap: 15px; align-items: center; justify-content: space-between; }
@@ -114,6 +123,7 @@ body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh;
 .btn.primary { background-color: var(--primary); color: #000; }
 .btn.secondary { background-color: var(--secondary); color: #000; }
 .btn.danger { background-color: var(--danger); color: #fff; }
+.btn.success { background-color: var(--color-cleaned); color: #fff; }
 .btn.small { padding: 5px 10px; font-size: 0.8rem; }
 .btn.full-width { width: 100%; margin-top: 10px; }
 .icon-btn { background: var(--surface-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
